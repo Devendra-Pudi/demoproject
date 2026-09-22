@@ -71,3 +71,12 @@ def test_overload(client):
 
     app.state.slots = asyncio.Semaphore(0)
     assert client.post("/ask", json={"question": "Annual leave policy?"}).status_code == 429
+
+
+def test_service_auth(client, monkeypatch):
+    monkeypatch.setenv("API_KEY", "test-secret")
+    assert client.get("/health").status_code == 200
+    assert client.get("/traces").status_code == 401
+    assert client.get("/metrics", headers={"Authorization": "Bearer wrong"}).status_code == 401
+    assert client.post("/ask", json={"question": "What is annual leave?"}).status_code == 401
+    assert client.get("/metrics", headers={"Authorization": "Bearer test-secret"}).status_code == 200

@@ -31,3 +31,18 @@ Evaluation checks evidence-bearing chunk Recall@4 and MRR, not just document hit
 Recall@4 ≥ .95; MRR ≥ .80; citation invariants = 1.0; retrieval p95 ≤ 3 seconds. With generation: evidence match ≥ .80; abstention accuracy = 1.0. Baseline recall/MRR drops > .02 fail; p95 > 1.5× baseline fails with a 50 ms noise floor. Smoke and neural baselines cannot be mixed.
 
 CI's smoke gate checks mechanics with test doubles. Dispatch the neural workflow and run generation evaluation before release. Use a representative, versioned held-out domain set (including adversarial, irrelevant, conflicting and stale-document cases) rather than relying on the eight included examples.
+
+## App entry point and deployment
+
+This folder now contains a runnable Streamlit application, its dependency file and a non-root container recipe. It reuses the monorepo shared package rather than duplicating backend logic.
+
+From the **repository root**:
+
+```bash
+pip install -r projects/production-rag-application/requirements.txt
+streamlit run projects/production-rag-application/app.py --server.port 8501
+```
+
+For a container: `docker build -f projects/production-rag-application/Dockerfile -t production-rag-application .`
+
+Read [DEPLOYMENT.md](../../DEPLOYMENT.md) for exact hosting steps, backend secrets, network requirements and public-production prerequisites. This folder is a monorepo deploy target, not a standalone copied directory.

@@ -1,18 +1,34 @@
-# Reliable AI Portfolio
+# AI Portfolio Projects
 
 Five connected, runnable project implementations demonstrating retrieval, local inference, observability, model adaptation, and real-time interaction. The domain is **employee policy assistance** with synthetic policy documents; extraction training uses fictional contacts.
 
 > **Execution status:** the model-free suite and smoke evaluation have been run. Neural retrieval, three-model Ollama benchmarks, and LoRA/DPO training require model downloads/hardware and have **not** been run in this workspace. Their scripts are supplied, not claimed results. This is a portfolio reference implementation, not a hardened enterprise deployment.
 
+
+## Five runnable app folders
+
+The project folders now include actual Streamlit/Gradio entrypoints, requirements and Dockerfiles—not only guides.
+
+```text
+projects/
+├── production-rag-application/   # Streamlit evidence UI + FastAPI Dockerfile
+├── local-slm-ollama/             # Streamlit local assistant + benchmark viewer
+├── monitoring-observability/    # Streamlit telemetry + evaluation gate viewer
+├── lora-dpo-fine-tuning/         # Streamlit experiment/report comparison
+└── realtime-multimodal/          # Gradio voice/text + optional local STT/TTS
+```
+
+**[Deployment guide →](DEPLOYMENT.md)** covers Streamlit Community Cloud, Docker Compose, Gradio hosting and the GitHub Pages portfolio directory in `site/`. Shared tested backend code remains in `src/ai_portfolio`; build/run from the repository root. Deployments are not claimed live until hosting succeeds.
+
 ## The five projects
 
 | Project | Implementation | Guide |
 |---|---|---|
-| 01 · Production-pattern RAG | BM25 + normalized sentence vectors → RRF → cross-encoder → citation-locked answer | [RAG](projects/01_rag/README.md) |
-| 02 · Local SLM application | Offline Ollama CLI; three-model same-host speed/JSON-quality benchmark | [Local models](projects/02_local_slm/README.md) |
-| 03 · Monitoring & observability | SQLite request/span traces, p50/p95, cost estimates, quality/regression CI gates | [Observability](projects/03_observability/README.md) |
-| 04 · Fine-tuning | Contact JSON extraction; LoRA/QLoRA SFT → DPO with frozen SFT reference; held-out evaluator | [Fine-tuning](projects/04_finetuning/README.md) |
-| 05 · Real-time multimodal | Browser speech input/output + NDJSON progress/answer stream, deadlines and text fallback | [Real-time](projects/05_realtime/README.md) |
+| 01 · Production-pattern RAG | BM25 + normalized sentence vectors → RRF → cross-encoder → citation-locked answer | [RAG](projects/production-rag-application/README.md) |
+| 02 · Local SLM application | Offline Ollama CLI; three-model same-host speed/JSON-quality benchmark | [Local models](projects/local-slm-ollama/README.md) |
+| 03 · Monitoring & observability | SQLite request/span traces, p50/p95, cost estimates, quality/regression CI gates | [Observability](projects/monitoring-observability/README.md) |
+| 04 · Fine-tuning | Contact JSON extraction; LoRA/QLoRA SFT → DPO with frozen SFT reference; held-out evaluator | [Fine-tuning](projects/lora-dpo-fine-tuning/README.md) |
+| 05 · Real-time multimodal | Browser speech input/output + NDJSON progress/answer stream, deadlines and text fallback | [Real-time](projects/realtime-multimodal/README.md) |
 
 ## Quick start: no model required
 
@@ -68,6 +84,7 @@ curl -s http://localhost:8000/ask -H 'Content-Type: application/json' \
 
 | Variable | Default | Purpose |
 |---|---|---|
+| `API_KEY` | unset (local only) | Shared service bearer key; set for remote backend deployments |
 | `RETRIEVAL_MODE` | `neural` | `neural` or explicitly labeled `smoke` |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Server-side inference address; never sent to browser |
 | `OLLAMA_MODEL` | `qwen2.5:1.5b` | Installed Ollama model |
@@ -91,7 +108,7 @@ API requires restarting to reindex document changes. Defaults are intended for a
 
 ## Limits and deployment checklist
 
-- No authentication, tenant isolation, ACL-filtered retrieval, rate limiting by identity, or TLS termination is implemented. Use only synthetic/public documents in a preview. Add these before any sensitive deployment; `/traces` and `/metrics` also need access control.
+- Optional shared bearer-key protection is available via `API_KEY` (all backend routes except `/health`). No per-user authentication, tenant isolation, ACL-filtered retrieval, rate limiting by identity, or TLS termination is implemented. Use only synthetic/public documents in a preview. Add these before any sensitive deployment; `/traces` and `/metrics` also need access control.
 - Quotes prove provenance, **not relevance or completeness**. The evidence-selection model may choose irrelevant quotes; use held-out domain evaluations and human review.
 - SQLite traces have no automatic retention/rotation, cross-service propagation, or OpenTelemetry export. Add them for a multi-service deployment. Questions and documents are not recorded in traces; local benchmark artifacts do contain model outputs.
 - In-memory exact dense search is for small corpora. Large deployments need persisted indexes, approximate nearest neighbors, incremental updates and document-level ACLs.

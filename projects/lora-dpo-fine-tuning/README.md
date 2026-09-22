@@ -34,3 +34,18 @@ All three runs use the same held-out file and deterministic decoding with no con
 **No trained adapter or before/after scores are claimed yet.** Training was not executed in this workspace. The comparison command produces actual numeric results only after running all evaluations. DPO can regress; report those regressions rather than assuming improvement.
 
 Before a serious experiment, add thousands of diverse consented/synthetic examples, a validation split for tuning, an untouched test split, adversarial input, nested/ambiguous entities, paired confidence intervals, baseline comparisons and multiple seeds. Record full package versions, hardware, weight revision and dataset hashes with the resulting artifacts. Do not train on private contact records without authorization.
+
+## App entry point and deployment
+
+This folder now contains a runnable Streamlit application, its dependency file and a non-root container recipe. It reuses the monorepo shared package rather than duplicating backend logic.
+
+From the **repository root**:
+
+```bash
+pip install -r projects/lora-dpo-fine-tuning/requirements.txt
+streamlit run projects/lora-dpo-fine-tuning/app.py --server.port 8504
+```
+
+For a container: `docker build -f projects/lora-dpo-fine-tuning/Dockerfile -t lora-dpo-fine-tuning .`
+
+Read [DEPLOYMENT.md](../../DEPLOYMENT.md) for exact hosting steps, backend secrets, network requirements and public-production prerequisites. This folder is a monorepo deploy target, not a standalone copied directory.

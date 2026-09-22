@@ -24,3 +24,18 @@ Never refresh a baseline simply to make a regression pass. Review the failing ca
 ## Production extension
 
 SQLite/WAL is appropriate for this single-host demo. Add retention, backups, access control, sampling, OpenTelemetry export, trace propagation, dashboards and alerts for distributed production. Suggested alerts: fallback rate > 5% over five minutes; p95 beyond your tested SLO; rising citation failures. These are starting targets, not measured guarantees. Test concurrent load before sizing workers and admission limits.
+
+## App entry point and deployment
+
+This folder now contains a runnable Streamlit application, its dependency file and a non-root container recipe. It reuses the monorepo shared package rather than duplicating backend logic.
+
+From the **repository root**:
+
+```bash
+pip install -r projects/monitoring-observability/requirements.txt
+streamlit run projects/monitoring-observability/app.py --server.port 8503
+```
+
+For a container: `docker build -f projects/monitoring-observability/Dockerfile -t monitoring-observability .`
+
+Read [DEPLOYMENT.md](../../DEPLOYMENT.md) for exact hosting steps, backend secrets, network requirements and public-production prerequisites. This folder is a monorepo deploy target, not a standalone copied directory.

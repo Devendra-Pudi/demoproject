@@ -1,5 +1,6 @@
 """RAG API and citation-safe event streaming with bounded concurrency and deadlines."""
 import asyncio
+import hmac
 import json
 import os
 import time
@@ -9,7 +10,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .rag import select_evidence
@@ -31,6 +32,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Reliable AI • Ask My Policies", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def service_auth(request, call_next):
+    # Shared service credential, not per-user auth. Keep public dashboards behind their own login.
+    key = os.getenv("API_KEY", "")
+    if key and request.url.path != "/health":
+        supplied = request.headers.get("Authorization", "")
+        if not hmac.compare_digest(supplied.encode(), ("Bearer " + key).encode()):
+            return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+    return await call_next(request)
 
 
 class Question(BaseModel):
@@ -101,6 +113,7 @@ async def run_question(question: str, queue: asyncio.Queue | None = None) -> dic
             answer = "Generation unavailable or evidence validation failed. Review the retrieved passages below."
         trace["spans_ms"]["generation_validation"] = (time.perf_counter() - stage) * 1000
         result = {"trace_id": trace["id"], "status": trace["status"], "answer": answer,
+                  "retrieval_mode": app.state.mode,
                   "citations": citations,
                   "retrieved": [{"chunk_id": c.id, "source": c.source, "text": c.text} for c in chunks]}
         return result

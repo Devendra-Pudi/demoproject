@@ -10,3 +10,5 @@ models/
 checkpoints/
 *.sqlite*
 .cache/
+.streamlit/secrets.toml
+*.wav

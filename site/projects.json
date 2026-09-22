@@ -1,0 +1,7 @@
+[
+  {"number":"01","name":"Production RAG Application","folder":"production-rag-application","stack":"STREAMLIT + FASTAPI","description":"Ask policy questions with hybrid retrieval, cross-encoder reranking and exact-source citations.","detail":"Evidence first. No unsupported freeform answers.","url":null},
+  {"number":"02","name":"Local SLM App with Ollama","folder":"local-slm-ollama","stack":"STREAMLIT + OLLAMA","description":"Run private local inference and compare three models on the same machine with measured speed and quality.","detail":"Offline inference when weights and services are local.","url":null},
+  {"number":"03","name":"Monitoring & Observability","folder":"monitoring-observability","stack":"STREAMLIT + SQLITE","description":"Inspect request traces, p50/p95 latency, estimated cost and evaluation regression gates.","detail":"No prompt or document content stored in traces.","url":null},
+  {"number":"04","name":"Fine-Tuning with LoRA & DPO","folder":"lora-dpo-fine-tuning","stack":"STREAMLIT + GPU JOBS","description":"Train JSON extraction adapters and compare actual base, SFT and DPO results on matched held-out data.","detail":"No invented improvement metrics. Train on a separate worker.","url":null},
+  {"number":"05","name":"Real-Time Multimodal Application","folder":"realtime-multimodal","stack":"GRADIO + FASTAPI","description":"Ask with voice or text, follow streamed progress and hear validated answers with offline speech output.","detail":"Bounded queues, timeouts and graceful text fallback.","url":null}
+]

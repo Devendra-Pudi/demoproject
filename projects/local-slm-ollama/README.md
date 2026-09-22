@@ -27,3 +27,18 @@ Reports go to `artifacts/local-benchmark.json`. Ollama must already be running; 
 Do not assume larger models are always better. Compare exact match against p95 and TTFT under the same quantization, context and hardware. Repeated three-case fixtures measure repeatability, not broad capability. Add many unseen extraction, reasoning and refusal cases; include confidence intervals and memory/power measurement for a rigorous study. Weights may have different licenses.
 
 **Actual three-model results: not yet measured.** This workspace has neither Ollama nor a detected NVIDIA toolchain. Run the command on your target machine before claiming quality/speed rankings. API fees are zero for local inference, but hardware amortization, energy, memory and operational labor are not. Inputs remain local when using a local Ollama URL; third-party/browser voice recognition is outside that guarantee.
+
+## App entry point and deployment
+
+This folder now contains a runnable Streamlit application, its dependency file and a non-root container recipe. It reuses the monorepo shared package rather than duplicating backend logic.
+
+From the **repository root**:
+
+```bash
+pip install -r projects/local-slm-ollama/requirements.txt
+streamlit run projects/local-slm-ollama/app.py --server.port 8502
+```
+
+For a container: `docker build -f projects/local-slm-ollama/Dockerfile -t local-slm-ollama .`
+
+Read [DEPLOYMENT.md](../../DEPLOYMENT.md) for exact hosting steps, backend secrets, network requirements and public-production prerequisites. This folder is a monorepo deploy target, not a standalone copied directory.

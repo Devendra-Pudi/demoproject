@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import json
+import math
 import time
 from pathlib import Path
 
@@ -14,6 +15,19 @@ from .retrieval import build_index
 
 def check_gates(report: dict, baseline: dict | None = None) -> list[str]:
     failures = []
+    for name in ("recall_at_4", "mrr", "citation_invariant_pass_rate", "retrieval_p95_ms"):
+        value = report.get(name)
+        upper = float("inf") if name == "retrieval_p95_ms" else 1
+        if type(value) not in (float, int) or not math.isfinite(value) or not 0 <= value <= upper:
+            return [f"Invalid or missing metric: {name}"]
+    generation = report.get("generation")
+    if generation is not None:
+        if not isinstance(generation, dict):
+            return ["Invalid generation metrics"]
+        for name in ("evidence_match_rate", "abstention_accuracy"):
+            value = generation.get(name)
+            if type(value) not in (float, int) or not math.isfinite(value) or not 0 <= value <= 1:
+                return [f"Invalid or missing generation metric: {name}"]
     if report["recall_at_4"] < 0.95:
         failures.append("recall_at_4 below 0.95")
     if report["mrr"] < 0.8:

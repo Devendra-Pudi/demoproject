@@ -1,5 +1,6 @@
 """Measure held-out JSON validity, field accuracy and exact match for base or adapter."""
 import argparse
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -48,6 +49,7 @@ def main():
         predictions.append(tokenizer.decode(result[0, inputs.input_ids.shape[1]:], skip_special_tokens=True))
         latencies.append((time.perf_counter() - start) * 1000)
     report = {"model": args.model, "adapter": args.adapter,
+              "dataset_sha256": hashlib.sha256(Path("data/training/heldout.jsonl").read_bytes()).hexdigest(),
               "metrics": score(predictions, [c["expected"] for c in cases]),
               "predictions": predictions, "latencies_ms": latencies}
     args.output.parent.mkdir(parents=True, exist_ok=True)

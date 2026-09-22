@@ -1,0 +1,62 @@
+# Local development stack. Public deployment requires private app access / an authenticated gateway.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: projects/production-rag-application/Dockerfile.api
+      args:
+        INSTALL_NEURAL: ${INSTALL_NEURAL:-false}
+    environment:
+      RETRIEVAL_MODE: ${RETRIEVAL_MODE:-smoke}
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:1.5b}
+      API_KEY: ${API_KEY:?Set API_KEY in .env before starting}
+    volumes:
+      - traces:/app/artifacts
+    depends_on:
+      - ollama
+  ollama:
+    image: ollama/ollama:0.6.8
+    volumes:
+      - ollama:/root/.ollama
+  rag:
+    build:
+      context: .
+      dockerfile: projects/production-rag-application/Dockerfile
+    ports: ["127.0.0.1:8501:8501"]
+    environment: &api-client
+      API_BASE_URL: http://api:8000
+      API_KEY: ${API_KEY:?Set API_KEY in .env before starting}
+    depends_on: [api]
+  local-slm:
+    build:
+      context: .
+      dockerfile: projects/local-slm-ollama/Dockerfile
+    ports: ["127.0.0.1:8502:8501"]
+    environment:
+      OLLAMA_URL: http://ollama:11434
+    depends_on: [ollama]
+  monitoring:
+    build:
+      context: .
+      dockerfile: projects/monitoring-observability/Dockerfile
+    ports: ["127.0.0.1:8503:8501"]
+    environment: *api-client
+    depends_on: [api]
+  fine-tuning:
+    build:
+      context: .
+      dockerfile: projects/lora-dpo-fine-tuning/Dockerfile
+    ports: ["127.0.0.1:8504:8501"]
+  realtime:
+    build:
+      context: .
+      dockerfile: projects/realtime-multimodal/Dockerfile
+    ports: ["127.0.0.1:7860:7860"]
+    environment:
+      <<: *api-client
+      ENABLE_LOCAL_STT: ${ENABLE_LOCAL_STT:-0}
+    depends_on: [api]
+volumes:
+  traces:
+  ollama:
