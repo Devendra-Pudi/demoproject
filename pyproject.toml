@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reliable-ai-portfolio"
+version = "0.1.0"
+description = "Five measurable AI systems with shared retrieval and observability"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1", "numpy>=1.26,<3", "pydantic>=2.8,<3"]
+
+[project.optional-dependencies]
+retrieval = ["sentence-transformers>=3.4,<4"]
+train = ["torch>=2.4,<3", "transformers>=4.46,<4.50", "datasets>=3.2,<4", "peft>=0.14,<0.15", "trl>=0.15,<0.16", "accelerate>=1.2,<2"]
+quantization = ["bitsandbytes>=0.45,<0.46"]
+dev = ["pytest>=8,<9", "ruff>=0.9,<0.10"]
+
+[project.scripts]
+ai-eval = "ai_portfolio.evaluation:main"
+ai-benchmark = "ai_portfolio.benchmark:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

@@ -1,0 +1,14 @@
+.git
+.venv
+.env
+.streamlit/secrets.toml
+__pycache__
+**/__pycache__
+*.egg-info
+**/*.egg-info
+.pytest_cache
+.ruff_cache
+artifacts
+checkpoints
+models
+*.sqlite*
