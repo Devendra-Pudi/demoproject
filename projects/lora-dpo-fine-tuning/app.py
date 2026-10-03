@@ -34,4 +34,7 @@ with compare:
             st.error("Reports must contain valid metrics and the same model, held-out dataset hash and sample count. "
                      "Regenerate older reports using the current evaluation script.")
     else:
-        st.info("Upload all three evaluation reports. No placeholder improvement numbers are used.")
+        st.info("Upload all three evaluation reports. The comparison shows exact match, field accuracy "
+                "and JSON validity for Base, SFT and DPO on the same held-out set; reports that do not "
+                "share the model, dataset hash and sample count are rejected rather than compared. "
+                "No improvement numbers are invented.")

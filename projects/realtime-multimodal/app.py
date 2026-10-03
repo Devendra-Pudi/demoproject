@@ -99,10 +99,17 @@ def respond(question, audio, read_aloud):
 
 def build_app():
     with gr.Blocks(title="Real-Time Multimodal Application", delete_cache=(3600, 3600)) as demo:
+        stt = os.getenv("ENABLE_LOCAL_STT", "0") == "1"
         gr.Markdown("# Real-Time Multimodal Application\n"
                     "Citation-safe voice and text interaction · AI Portfolio Projects\n\n"
-                    "Local STT is optional; microphone recordings go to this app server. "
-                    "Record at most 30 seconds. Text works without speech model downloads.")
+                    + (f"**Local speech recognition: enabled** (`STT_MODEL={os.getenv('STT_MODEL', 'tiny.en')}`). "
+                       "The first transcription downloads that model unless it is cached. "
+                       "Recordings are processed on this app server and are not sent to a third party.\n\n"
+                       if stt else
+                       "**Local speech recognition: disabled** — set `ENABLE_LOCAL_STT=1` (the shipped "
+                       "Docker image already does) to transcribe recordings on this server. Typed input "
+                       "works without any speech model download.\n\n")
+                    + "Record at most 30 seconds; uploads are capped at 5 MB.")
         question = gr.Textbox(label="Question", placeholder="When must API keys be rotated?", max_lines=4)
         audio = gr.Audio(sources=["microphone"], type="filepath", format="wav", label="Optional voice question")
         read_aloud = gr.Checkbox(label="Read validated answer aloud using offline eSpeak", value=False)

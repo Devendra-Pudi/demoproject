@@ -55,7 +55,7 @@ services:
     ports: ["127.0.0.1:7860:7860"]
     environment:
       <<: *api-client
-      ENABLE_LOCAL_STT: ${ENABLE_LOCAL_STT:-0}
+      ENABLE_LOCAL_STT: ${ENABLE_LOCAL_STT:-1}
     depends_on: [api]
 volumes:
   traces:
