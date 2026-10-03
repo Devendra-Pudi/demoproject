@@ -1,6 +1,7 @@
 """Small shared UI/client helpers; endpoint addresses are operator-controlled only."""
 import json
 import os
+from pathlib import Path
 from urllib.parse import urlparse
 
 import httpx
@@ -47,6 +48,18 @@ def api_post(path: str, body: dict):
     response = httpx.post(api_url() + path, headers=headers(), json=body, timeout=30)
     response.raise_for_status()
     return response.json()
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def repo_json(relative: str) -> dict:
+    """Read a committed repository artifact (for example a checked-in evaluation report)."""
+    path = (REPO_ROOT / relative).resolve()
+    if REPO_ROOT not in path.parents or not path.is_file():
+        raise ValueError(f"Committed artifact missing: {relative}")
+    return json.loads(path.read_text())
 
 
 def uploaded_json(file):

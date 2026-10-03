@@ -28,20 +28,28 @@ class Telemetry:
         return [json.loads(row[0]) for row in rows]
 
     def summary(self) -> dict:
-        traces = self.recent()
-        durations = [t["total_ms"] for t in traces]
-        return {
-            "window": "last 1000 requests", "requests": len(traces),
-            "p50_ms": float(np.percentile(durations, 50)) if traces else None,
-            "p95_ms": float(np.percentile(durations, 95)) if traces else None,
-            "degradation_rate": sum(t["status"] != "ok" for t in traces) / len(traces) if traces else None,
-            "estimated_api_cost_usd": sum(t.get("estimated_api_cost_usd", 0) for t in traces),
-            "mean_cost_per_request_usd": (
-                sum(t.get("estimated_api_cost_usd", 0) for t in traces) / len(traces) if traces else None
-            ),
-            "cost_note": "Configured token rates only; excludes hardware, electricity, and hosting.",
-            "citation_valid_rate": (
-                sum(t.get("citation_valid", False) for t in traces if t["status"] == "ok") /
-                max(sum(t["status"] == "ok" for t in traces), 1) if traces else None
-            ),
-        }
+        return summarize(self.recent())
+
+
+def summarize(traces: list[dict]) -> dict:
+    """Summarize trace payloads. Shared by live telemetry and the labeled demo-trace view."""
+    durations = [t["total_ms"] for t in traces]
+    return {
+        "window": "last 1000 requests", "requests": len(traces),
+        "p50_ms": float(np.percentile(durations, 50)) if traces else None,
+        "p95_ms": float(np.percentile(durations, 95)) if traces else None,
+        "degradation_rate": sum(t["status"] != "ok" for t in traces) / len(traces) if traces else None,
+        "estimated_api_cost_usd": sum(t.get("estimated_api_cost_usd", 0) for t in traces),
+        "mean_cost_per_request_usd": (
+            sum(t.get("estimated_api_cost_usd", 0) for t in traces) / len(traces) if traces else None
+        ),
+        "cost_note": "Configured token rates only; excludes hardware, electricity, and hosting.",
+        "citation_valid_rate": (
+            sum(t.get("citation_valid", False) for t in traces if t["status"] == "ok") /
+            max(sum(t["status"] == "ok" for t in traces), 1) if traces else None
+        ),
+        "generation_modes": {
+            mode: sum(t.get("generation_mode") == mode for t in traces)
+            for mode in ("demo", "model", "unavailable")
+        },
+    }
