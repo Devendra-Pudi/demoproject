@@ -15,7 +15,7 @@ jobs:
           cache: pip
       - run: pip install -e '.[retrieval]'
       - run: ai-eval --mode neural --output artifacts/neural-eval.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: neural-evaluation
