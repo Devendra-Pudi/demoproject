@@ -80,3 +80,40 @@ def test_service_auth(client, monkeypatch):
     assert client.get("/metrics", headers={"Authorization": "Bearer wrong"}).status_code == 401
     assert client.post("/ask", json={"question": "What is annual leave?"}).status_code == 401
     assert client.get("/metrics", headers={"Authorization": "Bearer test-secret"}).status_code == 200
+
+@pytest.fixture
+def demo_client(monkeypatch, tmp_path):
+    monkeypatch.setenv("RETRIEVAL_MODE", "demo")
+    monkeypatch.setenv("TRACE_DB", str(tmp_path / "traces.sqlite"))
+    with TestClient(app) as client:
+        yield client
+
+
+def test_demo_mode_answers_with_validated_quotes(demo_client, monkeypatch):
+    async def forbidden(*args):
+        raise AssertionError("demo mode must not call the model")
+    monkeypatch.setattr("ai_portfolio.api.select_evidence", forbidden)
+    result = demo_client.post("/ask", json={"question": "When must production API keys be rotated?"}).json()
+    assert result["status"] == "ok"
+    assert result["generation_mode"] == "demo"
+    assert result["retrieval_mode"] == "demo"
+    assert result["citations"][0]["quote"] == "Production API keys must be rotated every 90 days."
+    assert "90 days" in result["answer"]
+    metrics = demo_client.get("/metrics").json()
+    assert metrics["generation_modes"]["demo"] == 1
+    assert metrics["degradation_rate"] == 0
+    assert demo_client.get("/health").json()["generation_mode"] == "demo"
+
+
+def test_demo_mode_labels_uncurated_questions(demo_client):
+    result = demo_client.post("/ask", json={"question": "What is the pet insurance benefit?"}).json()
+    assert result["status"] == "retrieval_only"
+    assert result["generation_mode"] == "unavailable"
+    assert "No curated demo answer" in result["answer"]
+    assert demo_client.get("/metrics").json()["generation_modes"]["unavailable"] == 1
+
+
+def test_demo_stream_reports_generation_mode(demo_client):
+    response = demo_client.post("/stream", json={"question": "How many days per week may employees work remotely?"})
+    assert '"generation_mode": "demo"' in response.text
+    assert '"status": "ok"' in response.text
