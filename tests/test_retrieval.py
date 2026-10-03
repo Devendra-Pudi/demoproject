@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from ai_portfolio.retrieval import build_index, load_chunks
+from ai_portfolio.retrieval import build_index, load_chunks, tokens
 
 
 def test_retrieval():
@@ -28,3 +28,15 @@ def test_empty_and_invalid(tmp_path):
         build_index(tmp_path, "typo")
     with pytest.raises(ValueError):
         build_index(Path("data/docs"), "smoke").search(" ")
+
+
+def test_light_plural_normalization_keeps_terms_related():
+    # BM25 has no stemmer; without this, "password" would not match "passwords".
+    assert tokens("Passwords") == tokens("password") == ["password"]
+    assert tokens("policies") == ["policy"]
+    assert tokens("employee devices") == ["employee", "device"]
+
+
+def test_light_plural_normalization_leaves_distinct_words_alone():
+    assert tokens("access class loss") == ["access", "class", "loss"]
+    assert tokens("less") == ["less"]

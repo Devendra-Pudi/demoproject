@@ -13,7 +13,21 @@ import numpy as np
 
 
 def tokens(text: str) -> list[str]:
-    return re.findall(r"\b\w+\b", text.lower())
+    """Lowercase word tokens with light plural normalization.
+
+    BM25 here has no stemmer, so "password" and "passwords" would otherwise be unrelated terms.
+    The normalization is deliberately conservative: it only handles the regular plural forms
+    English policy text actually uses, and never joins distinct words.
+    """
+    return [_stem(word) for word in re.findall(r"\b\w+\b", text.lower())]
+
+
+def _stem(word: str) -> str:
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
+        return word[:-1]
+    return word
 
 
 @dataclass(frozen=True)
@@ -120,8 +134,10 @@ class HybridIndex:
 
 
 def build_index(directory: Path, mode: str = "neural") -> HybridIndex:
-    if mode not in {"smoke", "neural"}:
-        raise ValueError("RETRIEVAL_MODE must be neural or smoke")
-    encoder = SmokeEncoder() if mode == "smoke" else SentenceEncoder()
-    reranker = SmokeReranker() if mode == "smoke" else CrossEncoderReranker()
+    # "demo" reuses the deterministic lexical doubles; it is labeled as such everywhere it surfaces.
+    if mode not in {"smoke", "demo", "neural"}:
+        raise ValueError("RETRIEVAL_MODE must be neural, demo or smoke")
+    lexical = mode in {"smoke", "demo"}
+    encoder = SmokeEncoder() if lexical else SentenceEncoder()
+    reranker = SmokeReranker() if lexical else CrossEncoderReranker()
     return HybridIndex(load_chunks(directory), encoder, reranker)
