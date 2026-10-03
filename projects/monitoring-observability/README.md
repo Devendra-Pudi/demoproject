@@ -2,6 +2,11 @@
 
 **Code:** `telemetry.py`, instrumented `api.py`, `evaluation.py`, `.github/workflows`.
 
+![Interface structure preview](../docs/previews/monitoring-observability.svg)
+
+*Structure preview rendered from the running app — approximate styling, real labels. Capture a real screenshot with `python scripts/capture_screenshots.py`.*
+
+
 Every request receives a UUID and content-free SQLite trace, including overload, timeout, fallback, cancellation and unexpected failures. Spans measure retrieval/reranking and generation/validation separately; total latency includes admission wait. Traces record retrieval mode, token counts and validation status, not prompts or evidence text.
 
 ```bash
@@ -14,6 +19,13 @@ pytest tests/test_evaluation.py tests/test_api.py -q
 The dashboard and `/metrics` summarize the last **1,000** stored requests: p50/p95 latency, degradation rate, valid-citation rate for successful requests, estimated aggregate API cost and mean cost/request. `/traces` returns the latest 50; no per-trace content is retained. An abstention has valid (empty) citations; this metric must not be mistaken for answer accuracy.
 
 Cost formula: `(input_tokens × input_rate + output_tokens × output_rate) / 1e6`. Rates come from environment variables. Defaults are zero for Ollama. Failed requests without usage information may incur unreported computation; this is an estimate, not billing data. Local hardware cost is not modeled.
+
+## Previewing the dashboard without a backend
+
+*Live telemetry* needs a reachable API — that is the point of the view, so it stays empty until one
+exists rather than showing invented numbers. *Evaluation gate* works offline: **Evaluate the committed
+smoke baseline** runs the same gate check against `data/eval/smoke-baseline.json`, the reviewed
+artifact CI compares against.
 
 ## Regression workflow
 

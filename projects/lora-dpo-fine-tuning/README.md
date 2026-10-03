@@ -2,6 +2,11 @@
 
 **Code:** `scripts/train.py`, `evaluate_extraction.py`, `compare_extraction.py`; synthetic data in `data/training`.
 
+![Interface structure preview](../docs/previews/lora-dpo-fine-tuning.svg)
+
+*Structure preview rendered from the running app — approximate styling, real labels. Capture a real screenshot with `python scripts/capture_screenshots.py`.*
+
+
 Task: extract a contact into exactly `{name, email}`, using JSON null for missing email. Twelve SFT examples, twelve preference pairs and six held-out contacts are included as **pipeline fixtures**, not sufficient training/evaluation data for a quality claim. Held-out names/emails do not appear in training; templates still overlap.
 
 ## Environment and training

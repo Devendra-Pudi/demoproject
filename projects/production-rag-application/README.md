@@ -2,6 +2,11 @@
 
 **Code:** `src/ai_portfolio/retrieval.py`, `rag.py`, `api.py`; fixtures in `data/docs` and `data/eval`.
 
+![Interface structure preview](../docs/previews/production-rag-application.svg)
+
+*Structure preview rendered from the running app — approximate styling, real labels. Capture a real screenshot with `python scripts/capture_screenshots.py`.*
+
+
 ## Retrieval design
 
 1. Split Markdown paragraphs into at most 180 words with 30-word overlap for long paragraphs. Stable source/content SHA-256 IDs identify evidence.
@@ -12,6 +17,24 @@
 6. Only validated **verbatim quotes** become answer text. Empty selections abstain. Failures show retrieved passages as a clearly labeled non-answer.
 
 This intentionally sacrifices paraphrasing to enforce a strong provenance invariant. Source documents remain untrusted data. Exact quote checks prevent fabricated provenance but do not solve malicious source content, relevance, access control, or all prompt injection.
+
+## Run it without a model (demo mode)
+
+```bash
+RETRIEVAL_MODE=demo uvicorn ai_portfolio.api:app --host 0.0.0.0 --port 8000
+```
+
+Demo mode runs the real retrieval path with deterministic lexical doubles and answers from curated
+fixtures in `src/ai_portfolio/demo.py`. Each fixture quote is re-validated against the chunk
+retrieval actually returned — the same `enforce_citations()` invariant as live model output — and the
+UI labels the response `DEMO`. Curated questions cover the shipped corpus; anything else returns
+evidence only with an explanation. `tests/test_demo.py` fails if a curated quote stops matching the
+documents, so the demo cannot drift into fiction. Inspect a live response with:
+
+```bash
+curl -s localhost:8000/ask -H 'Content-Type: application/json' \
+  -d '{"question":"How many days of paid annual leave do full-time employees receive?"}'
+```
 
 ## Run and evaluate
 

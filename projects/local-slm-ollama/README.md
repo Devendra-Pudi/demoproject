@@ -2,6 +2,11 @@
 
 **Code:** `src/ai_portfolio/local.py`, `benchmark.py`.
 
+![Interface structure preview](../docs/previews/local-slm-ollama.svg)
+
+*Structure preview rendered from the running app — approximate styling, real labels. Capture a real screenshot with `python scripts/capture_screenshots.py`.*
+
+
 ```bash
 # Download while connected. Then disconnect to verify offline inference.
 ollama pull qwen2.5:1.5b

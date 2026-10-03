@@ -2,7 +2,20 @@
 
 **Code:** `web/index.html`, `/stream` in `api.py`.
 
+![Interface structure preview](../docs/previews/realtime-multimodal.svg)
+
+*Structure preview rendered from the running app — approximate styling, real labels. Capture a real screenshot with `python scripts/capture_screenshots.py`.*
+
+
 Start the server using the root quick start. Open the browser UI, choose **Use voice**, grant microphone permission, review the transcript and submit. Enable **Read validated answers aloud** for speech output. Typed interaction always remains available. Speech recognition availability varies by browser and typically requires HTTPS or localhost; the proxied preview uses HTTPS.
+
+## Speech configuration
+
+The shipped Docker image installs faster-whisper and eSpeak and sets `ENABLE_LOCAL_STT=1`, so local
+transcription works out of the box (first use downloads `STT_MODEL`, default `tiny.en`). Run from
+source without those packages and you get typed input only — the page states which mode is active.
+`ENABLE_LOCAL_STT=0` disables local transcription explicitly; TTS falls back to text if `espeak` is
+missing.
 
 ## Stream contract
 
