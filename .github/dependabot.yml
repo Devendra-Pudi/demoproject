@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # Pinned on purpose: the CI gate is verified against these exact versions.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker
+    directory: "/projects/production-rag-application"
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker
+    directory: "/projects/realtime-multimodal"
+    schedule:
+      interval: monthly

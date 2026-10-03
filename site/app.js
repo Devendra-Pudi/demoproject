@@ -1,5 +1,5 @@
 const root = document.getElementById('cards');
-const repository = 'https://github.com/Devendra-Pudi/demoproject/tree/arena/01a0c7ca-demoproject/projects/';
+const repository = 'https://github.com/Devendra-Pudi/demoproject/tree/main/projects/';
 function element(tag, text, className) {
   const node = document.createElement(tag);
   if (text) node.textContent = text;
@@ -15,6 +15,13 @@ fetch('projects.json').then(response => {
     const card = element('article', '', 'card');
     const top = element('div', '', 'card-top');
     top.append(element('span', project.number, 'number'), element('span', project.stack));
+    if (project.screenshot) {
+      const shot = element('img', '', 'card-shot');
+      shot.src = project.screenshot;
+      shot.alt = project.name + ' interface screenshot';
+      shot.loading = 'lazy';
+      card.append(shot);
+    }
     const actions = element('div', '', 'card-actions');
     const source = element('a', 'View project ↗');
     source.href = repository + project.folder;

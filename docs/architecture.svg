@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 700" width="1180" height="700" role="img" aria-label="System architecture: browser clients, FastAPI service with bounded admission, hybrid retrieval and citation validation, local model, telemetry store, CI gates and fine-tuning pipeline">
+<style>
+  .box{fill:#121b28;stroke:#293648;stroke-width:1;rx:12}
+  .client{fill:#132420;stroke:#3a5b52}
+  .store{fill:#1a1622;stroke:#4a3b5c}
+  .gate{fill:#141d2c;stroke:#2f4a6b}
+  .t{font:600 14px Inter,system-ui,sans-serif;fill:#edf3f7}
+  .s{font:400 12px Inter,system-ui,sans-serif;fill:#9aabbd}
+  .m{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#79dfbc}
+  .k{font:700 11px Inter,system-ui,sans-serif;fill:#79dfbc;letter-spacing:1.6px}
+  .edge{stroke:#3d5a7a;stroke-width:1.6;fill:none;marker-end:url(#arrow)}
+  .dash{stroke:#4a3b5c;stroke-width:1.4;fill:none;stroke-dasharray:6 5;marker-end:url(#arrow2)}
+  .lbl{font:400 11px ui-monospace,Menlo,monospace;fill:#8fa5bb}
+</style>
+<defs>
+  <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#3d5a7a"/></marker>
+  <marker id="arrow2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#4a3b5c"/></marker>
+</defs>
+<rect width="1180" height="700" fill="#0b1018"/>
+<text x="36" y="46" class="k">AI PORTFOLIO PROJECTS / SYSTEM MAP</text>
+<text x="36" y="74" class="t" style="font-size:19px">Five applications, one shared evidence pipeline</text>
+
+<!-- clients -->
+<rect class="box client" x="36" y="112" width="230" height="104" rx="12"/>
+<text x="54" y="142" class="t">01 · Policy Lab browser UI</text>
+<text x="54" y="164" class="s">Web Speech (optional, browser)</text>
+<text x="54" y="184" class="s">NDJSON progress events · 30 s abort</text>
+<text x="54" y="204" class="s">TEXT &amp; VOICE CLIENT</text>
+
+<rect class="box client" x="36" y="240" width="230" height="96" rx="12"/>
+<text x="54" y="270" class="t">Streamlit dashboards</text>
+<text x="54" y="292" class="s">01 RAG · 02 local SLM · 03 metrics</text>
+<text x="54" y="312" class="s">04 experiment comparison</text>
+
+<rect class="box client" x="36" y="360" width="230" height="84" rx="12"/>
+<text x="54" y="390" class="t">Gradio voice client</text>
+<text x="54" y="412" class="s">05 local Whisper STT (optional)</text>
+<text x="54" y="432" class="s">eSpeak TTS (optional)</text>
+
+<!-- service -->
+<rect class="box" x="330" y="112" width="330" height="332" rx="12"/>
+<text x="352" y="144" class="t">FastAPI service (single process)</text>
+<text x="352" y="166" class="m">POST /ask · POST /stream · GET /metrics</text>
+<text x="352" y="186" class="m">GET /traces · GET /health · GET /docs</text>
+<line x1="352" y1="200" x2="638" y2="200" stroke="#293648"/>
+<text x="352" y="224" class="s">1 · bearer key (optional) + Pydantic limits</text>
+<text x="352" y="246" class="s">2 · admission semaphore (4) · 250 ms wait</text>
+<text x="352" y="268" class="s">3 · BM25 + dense vectors → RRF (k=60)</text>
+<text x="352" y="290" class="s">4 · cross-encoder rerank → top 4 chunks</text>
+<text x="352" y="312" class="s">5 · evidence selection (model or demo fixtures)</text>
+<text x="352" y="334" class="s">6 · verbatim-quote + source-ID validation</text>
+<text x="352" y="356" class="s">7 · answer, abstention or labeled fallback</text>
+<line x1="352" y1="370" x2="638" y2="370" stroke="#293648"/>
+<text x="352" y="394" class="s">Deadlines: retrieval 3 s · generation 20 s</text>
+<text x="352" y="416" class="s">Cancel on disconnect · labeled degradation</text>
+<text x="352" y="438" class="m">mode: neural | demo | smoke</text>
+
+<!-- model + corpus -->
+<rect class="box" x="724" y="112" width="200" height="104" rx="12"/>
+<text x="742" y="142" class="t">Local model</text>
+<text x="742" y="164" class="s">Ollama · qwen2.5:1.5b</text>
+<text x="742" y="184" class="s">no weights auto-downloaded</text>
+<text x="742" y="204" class="s">never exposed to browser</text>
+
+<rect class="box" x="724" y="240" width="200" height="96" rx="12"/>
+<text x="742" y="270" class="t">Policy corpus</text>
+<text x="742" y="292" class="s">21 synthetic documents</text>
+<text x="742" y="312" class="s">63 chunks · SHA-256 IDs</text>
+
+<rect class="box store" x="724" y="360" width="200" height="84" rx="12"/>
+<text x="742" y="390" class="t">SQLite traces</text>
+<text x="742" y="412" class="s">content-free spans only</text>
+<text x="742" y="432" class="m">artifacts/traces.sqlite</text>
+
+<!-- edges -->
+<path class="edge" d="M266 164 H330"/>
+<path class="edge" d="M266 288 H330"/>
+<path class="edge" d="M266 402 H300 V330 H330"/>
+<path class="edge" d="M660 200 H692 V164 H724"/>
+<path class="edge" d="M660 288 H724"/>
+<path class="dash" d="M660 400 H724"/>
+<text x="672" y="192" class="lbl">chat API</text>
+<text x="470" y="102" class="lbl">HTTPS / same origin</text>
+
+<!-- CI + training -->
+<rect class="box gate" x="330" y="486" width="270" height="150" rx="12"/>
+<text x="352" y="516" class="t">CI gates (GitHub Actions)</text>
+<text x="352" y="540" class="s">ruff · pytest (77) · smoke evaluation</text>
+<text x="352" y="562" class="s">baseline regression comparison</text>
+<text x="352" y="584" class="s">manual neural evaluation workflow</text>
+<text x="352" y="606" class="s">artifact upload even on failure</text>
+<text x="352" y="626" class="m">data/eval/smoke-baseline.json</text>
+
+<rect class="box gate" x="640" y="486" width="284" height="150" rx="12"/>
+<text x="662" y="516" class="t">04 · Fine-tuning worker</text>
+<text x="662" y="540" class="s">LoRA/QLoRA SFT → DPO policy</text>
+<text x="662" y="562" class="s">frozen SFT reference adapter</text>
+<text x="662" y="584" class="s">matched held-out evaluation</text>
+<text x="662" y="606" class="s">reports rejected if dataset/model differ</text>
+<text x="662" y="626" class="m">scripts/train.py · evaluate_extraction.py</text>
+
+<path class="dash" d="M465 444 V486"/>
+<path class="dash" d="M782 444 V486"/>
+<text x="36" y="674" class="s">Dashed edges are offline/observational paths: telemetry writes, CI reads fixtures, training runs on a separate worker.</text>
+</svg>
