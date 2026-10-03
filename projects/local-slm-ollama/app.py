@@ -45,7 +45,8 @@ with chat:
                 st.error("Inference failed or timed out. Any partial output above is incomplete. "
                          "Check OLLAMA_URL, gateway credentials and installed model names.")
 with benchmark:
-    st.code("ai-benchmark --models qwen2.5:1.5b llama3.2:1b gemma2:2b --repeats 3")
+    st.code("ollama pull qwen2.5:1.5b && ollama pull llama3.2:1b && ollama pull gemma2:2b\n"
+            "ai-benchmark --models qwen2.5:1.5b llama3.2:1b gemma2:2b --repeats 3")
     file = st.file_uploader("Upload the generated local-benchmark.json", type=["json"])
     if file:
         try:
@@ -57,8 +58,13 @@ with benchmark:
                 raise ValueError("Three model results required")
             st.dataframe(rows, use_container_width=True)
             st.json(report["hardware"])
-            st.caption("Uploaded measurements; not independently verified by this dashboard.")
+            st.caption("Uploaded measurements; not independently verified by this dashboard. "
+                       "Report latency, tokens/second, JSON validity and exact match together with the "
+                       "hardware and quantization they were measured on.")
         except (ValueError, KeyError, TypeError, AttributeError):
             st.error("Invalid benchmark report. Upload output from ai-benchmark.")
     else:
-        st.info("No measurements uploaded. Run the benchmark on your target hardware; no sample scores are shown.")
+        st.info("No measurements uploaded. The table shows one row per model — end-to-end latency "
+                "p50/p95, mean decode tokens per second, JSON validity and exact match — next to the "
+                "recorded hardware, quantization and dataset hash. Run the commands above on your "
+                "target machine; no invented scores are shown.")

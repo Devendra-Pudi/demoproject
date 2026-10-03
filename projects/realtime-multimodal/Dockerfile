@@ -1,5 +1,7 @@
 FROM python:3.11-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/home/app GRADIO_ANALYTICS_ENABLED=False
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/home/app GRADIO_ANALYTICS_ENABLED=False \
+    # This image installs faster-whisper and eSpeak, so local STT/TTS are on unless overridden.
+    ENABLE_LOCAL_STT=1
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends espeak ffmpeg && rm -rf /var/lib/apt/lists/*
 COPY projects/realtime-multimodal/requirements*.txt /tmp/deps/

@@ -12,6 +12,8 @@ This is a **monorepo with five app folders**, not five disconnected copies. Each
 | `lora-dpo-fine-tuning` | `app.py` (Streamlit) | Streamlit Community Cloud / Docker | GPU worker only for training; report viewer is standalone |
 | `realtime-multimodal` | `app.py` (Gradio) | Docker / Hugging Face Docker Space | Shared FastAPI service; optional local STT |
 
+For a reviewer-friendly deployment, start the API with `RETRIEVAL_MODE=demo`: it needs no model download and still returns citation-validated answers, clearly labeled as curated.
+
 GitHub Pages serves `site/` as a static project directory. It **cannot execute Streamlit, Gradio, Ollama, training or the API**. No live application URL is claimed until you deploy one and set its `url` in `site/projects.json`.
 
 ## A. Local development, all apps
@@ -21,8 +23,10 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 pip install -r requirements-apps.txt -r projects/realtime-multimodal/requirements.txt
-# Terminal 1: no downloaded models necessary for a clearly labeled retrieval-only demo
-RETRIEVAL_MODE=smoke uvicorn ai_portfolio.api:app --host 0.0.0.0 --port 8000
+# Terminal 1: no downloaded models necessary.
+#   demo  → labeled curated answers re-validated against retrieved text (best for reviewers)
+#   smoke → labeled test doubles, retrieval-only fallback (what CI uses)
+RETRIEVAL_MODE=demo uvicorn ai_portfolio.api:app --host 0.0.0.0 --port 8000
 # Terminal 2: choose one dashboard (or run each in a terminal on a different port)
 streamlit run projects/production-rag-application/app.py --server.port 8501
 streamlit run projects/local-slm-ollama/app.py --server.port 8502
@@ -48,12 +52,12 @@ Dashboards: localhost ports 8501–8504, Gradio: 7860. Compose publishes dashboa
 
 To enable neural retrieval, set `INSTALL_NEURAL=true` and `RETRIEVAL_MODE=neural` in `.env`, then rebuild. First startup downloads model weights and may exceed initial healthcheck grace time. Add persistent model cache volumes for long-term deployments. The backend trace volume and Ollama weights already persist. Four admitted backend requests and a two-worker Gradio queue are reference defaults, not tested capacity guarantees.
 
-To enable local voice recognition, set `ENABLE_LOCAL_STT=1`; the Gradio image includes faster-whisper and eSpeak. The first transcription downloads `tiny.en` unless cached. Text input works without it. Transcription/audio input is capped at 30 seconds and upload size at 5 MB. Provision/cache STT models before using offline.
+The Gradio image installs faster-whisper and eSpeak and now sets `ENABLE_LOCAL_STT=1` itself, so the Compose default (`${ENABLE_LOCAL_STT:-1}`) matches what the image can actually do. Set `ENABLE_LOCAL_STT=0` to disable local transcription, or override `STT_MODEL` (default `tiny.en`). The first transcription downloads the model unless it is cached. Text input works without it. Transcription/audio input is capped at 30 seconds and upload size at 5 MB. Provision/cache STT models before using offline.
 
 ## C. Streamlit Community Cloud (projects 1–4)
 
 1. Sign in to Streamlit Community Cloud with GitHub and select **Create app**.
-2. Choose `Devendra-Pudi/demoproject` and branch `arena/01a0c7ca-demoproject` (or `main` after merging the PR).
+2. Choose `Devendra-Pudi/demoproject` and the `main` branch.
 3. Set the main file to the relevant `projects/<folder>/app.py` from the table. Choose Python **3.11**.
 4. Streamlit finds `requirements.txt` beside that entry point. It includes the root `requirements-apps.txt`; no neural packages load on the dashboard host.
 5. In advanced settings/secrets configure the service connection, for example:
@@ -91,7 +95,7 @@ For training, use `scripts/train.py` on a separately provisioned CUDA machine/jo
 2. Merge the Pages workflow into `main`, or once available on the default branch, manually dispatch **Deploy portfolio directory to Pages**, selecting the desired branch.
 3. On merge, changes to `site/` on `main` publish automatically. The workflow uses a `github-pages` environment; approve it if your repository requires approval.
 4. Use the URL shown by the deployment. Expected repository-site URL: `https://devendra-pudi.github.io/demoproject/` (not asserted live until deployment succeeds).
-5. Add actual HTTPS app URLs to `site/projects.json` and push. Unconfigured cards show a source link and an explicit “Deployment URL not configured” message.
+5. Add actual HTTPS app URLs to `site/projects.json` and push. Unconfigured cards show a source link, an interface structure preview and an explicit “Deployment URL not configured” message.
 
 ## Public production checklist — not completed merely by deploying
 

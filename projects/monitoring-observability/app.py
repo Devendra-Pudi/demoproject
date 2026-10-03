@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 import httpx
 import streamlit as st
 
-from ai_portfolio.dashboard import api_get, page, unavailable, uploaded_json
+from ai_portfolio.dashboard import api_get, page, repo_json, unavailable, uploaded_json
 from ai_portfolio.evaluation import check_gates
 
 page("Monitoring & Observability", "Latency, request cost, degradation and content-free traces for the RAG service.")
@@ -33,9 +33,10 @@ with live:
         st.info("Connect a RAG backend and refresh. An empty deployment has no request metrics yet.")
 with evaluation:
     upload = st.file_uploader("Upload a RAG evaluation report", type=["json"])
-    if upload:
+    committed = st.button("Evaluate the committed smoke baseline")
+    if upload or committed:
         try:
-            report = uploaded_json(upload)
+            report = uploaded_json(upload) if upload else repo_json("data/eval/smoke-baseline.json")
             failures = check_gates(report)
             st.json(report)
             if failures:

@@ -13,6 +13,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from .demo import demo_answer
 from .rag import select_evidence
 from .retrieval import build_index
 from .telemetry import Telemetry
@@ -32,6 +33,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Reliable AI • Ask My Policies", lifespan=lifespan)
+
+
+def generation_mode() -> str:
+    """How answers are produced: curated demo fixtures, a local model, or not at all."""
+    return "demo" if getattr(app.state, "mode", "") == "demo" else "model"
 
 
 @app.middleware("http")
@@ -57,7 +63,7 @@ async def home():
 @app.get("/health")
 async def health():
     return {"status": "ready", "retrieval_mode": app.state.mode,
-            "chunks": len(app.state.index.chunks)}
+            "generation_mode": generation_mode(), "chunks": len(app.state.index.chunks)}
 
 
 @app.get("/metrics")
@@ -73,7 +79,8 @@ async def traces():
 async def run_question(question: str, queue: asyncio.Queue | None = None) -> dict:
     start = time.perf_counter()
     trace = {"id": str(uuid.uuid4()), "status": "ok", "spans_ms": {},
-             "retrieval_mode": app.state.mode, "input_tokens": 0, "output_tokens": 0}
+             "retrieval_mode": app.state.mode, "generation_mode": "unavailable",
+             "input_tokens": 0, "output_tokens": 0}
     chunks, citations = [], []
     answer = "No supported answer found in these policies."
     acquired = False
@@ -98,22 +105,39 @@ async def run_question(question: str, queue: asyncio.Queue | None = None) -> dic
         if queue is not None:
             await queue.put({"type": "stage", "stage": "retrieved", "trace_id": trace["id"]})
         stage = time.perf_counter()
-        try:
-            citations, usage = await asyncio.wait_for(select_evidence(
-                app.state.client, os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"),
-                os.getenv("OLLAMA_MODEL", "qwen2.5:1.5b"), question, chunks,
-            ), timeout=float(os.getenv("GENERATION_TIMEOUT_S", "20")))
-            trace.update(usage)
-            trace["citation_valid"] = True
+        if generation_mode() == "demo":
+            # Curated fixtures, re-validated against the chunks retrieval actually returned.
+            citations = demo_answer(question, chunks)
             if citations:
+                trace["generation_mode"] = "demo"
+                trace["citation_valid"] = True
                 answer = "\n\n".join(f'{c["quote"]} [{i}]' for i, c in enumerate(citations, 1))
-        except (httpx.HTTPError, TimeoutError, ValueError, KeyError, TypeError):
-            trace["status"] = "retrieval_only"
-            trace["citation_valid"] = False
-            answer = "Generation unavailable or evidence validation failed. Review the retrieved passages below."
+            else:
+                trace["generation_mode"] = "unavailable"
+                trace["status"] = "retrieval_only"
+                trace["citation_valid"] = False
+                answer = ("No curated demo answer matches this question. Review the retrieved "
+                          "passages below; run the neural mode for live model answers.")
+        else:
+            try:
+                citations, usage = await asyncio.wait_for(select_evidence(
+                    app.state.client, os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"),
+                    os.getenv("OLLAMA_MODEL", "qwen2.5:1.5b"), question, chunks,
+                ), timeout=float(os.getenv("GENERATION_TIMEOUT_S", "20")))
+                trace.update(usage)
+                trace["generation_mode"] = "model"
+                trace["citation_valid"] = True
+                if citations:
+                    answer = "\n\n".join(f'{c["quote"]} [{i}]' for i, c in enumerate(citations, 1))
+            except (httpx.HTTPError, TimeoutError, ValueError, KeyError, TypeError):
+                trace["generation_mode"] = "unavailable"
+                trace["status"] = "retrieval_only"
+                trace["citation_valid"] = False
+                answer = "Generation unavailable or evidence validation failed. Review the retrieved passages below."
         trace["spans_ms"]["generation_validation"] = (time.perf_counter() - stage) * 1000
         result = {"trace_id": trace["id"], "status": trace["status"], "answer": answer,
                   "retrieval_mode": app.state.mode,
+                  "generation_mode": trace.get("generation_mode", "model"),
                   "citations": citations,
                   "retrieved": [{"chunk_id": c.id, "source": c.source, "text": c.text} for c in chunks]}
         return result

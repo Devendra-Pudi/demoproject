@@ -85,3 +85,10 @@ def test_gradio_incomplete_stream(voice, monkeypatch):
         monkeypatch.setattr(voice.httpx, "stream", client.stream)
         results = list(voice.respond("Annual leave?", None, False))
     assert "Incomplete response" in results[-1][0]
+
+
+def test_monitoring_committed_baseline_evaluation():
+    app = AppTest.from_file(str(PROJECTS / "monitoring-observability/app.py")).run()
+    next(button for button in app.button if button.label == "Evaluate the committed smoke baseline").click().run()
+    assert not app.exception
+    assert any("Absolute gates passed" in success.value for success in app.success)

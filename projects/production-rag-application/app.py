@@ -35,8 +35,14 @@ if result:
     st.caption("Trace: " + result["trace_id"])
     if result.get("retrieval_mode") == "smoke":
         st.warning("SMOKE MODE: lexical test doubles, not neural embeddings or a cross-encoder.")
+    if result.get("retrieval_mode") == "demo":
+        st.warning("DEMO MODE: curated answer fixtures re-validated against the retrieved document "
+                   "text—not live model inference. Start the backend with RETRIEVAL_MODE=neural and "
+                   "Ollama for generated answers.")
     if result["status"] != "ok":
         st.warning("Retrieval-only fallback. These passages are not a generated answer.")
+    elif result.get("generation_mode") == "demo":
+        st.caption("Answer source: curated demo fixtures (quotes re-validated against the documents).")
     st.text(result["answer"])
     for i, citation in enumerate(result["citations"] or result["retrieved"], 1):
         with st.expander(f"[{i}] {citation['source']}"):
