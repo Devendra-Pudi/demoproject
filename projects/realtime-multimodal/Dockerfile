@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.15-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/home/app GRADIO_ANALYTICS_ENABLED=False \
     # This image installs faster-whisper and eSpeak, so local STT/TTS are on unless overridden.
     ENABLE_LOCAL_STT=1
